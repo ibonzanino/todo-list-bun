@@ -1,78 +1,148 @@
-# todo‑list‑bun
+# ⚡ Bun Todo API (Native SQLite)
 
-> Uma aplicação de lista de tarefas construída com Bun + TypeScript,
-> ideal para demonstração de stack moderna, backend e deploy rápidos.
+![Bun](https://img.shields.io/badge/Runtime-Bun_v1.0+-black?style=for-the-badge&logo=bun&logoColor=white)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Container-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Fly.io](https://img.shields.io/badge/Deploy-Fly.io-purple?style=for-the-badge&logo=fly.io&logoColor=white)
 
-## 🚀 Visão Geral
+> Uma API REST de alta performance construída com **Bun** e **SQLite Nativo** (`bun:sqlite`), configurada para deploy em containers com persistência de dados via Volumes.
 
-Este projeto demonstra como construir e rodar uma API simples de "todo
-list" usando **Bun**, com TypeScript, SQLite e Docker. Serve tanto como
-projeto de estudo quanto como material de portfólio para recrutadores,
-mostrando habilidade com runtime moderno, containers e boas práticas.
+---
 
-## 🛠 Tecnologias
+## 📖 Sobre o Projeto
 
-- Backend: TypeScript
-- Runtime: Bun
-- Banco de dados: SQLite
-- Containerização: Docker
-- Configuração de deploy: `fly.toml`
-- Configuração de projeto: `tsconfig.json`, `bun.lock`
+Este projeto é o Backend de uma aplicação de Lista de Tarefas. Ele foi desenvolvido focando em simplicidade e velocidade, removendo camadas de complexidade desnecessárias (como ORMs pesados) e utilizando os recursos nativos do runtime Bun.
 
-## 🔧 Instalação & Execução
+### 🚀 Destaques Técnicos
 
-1.  Clone o repositório:
+- **Bun Native Server:** Utiliza `Bun.serve` para máxima performance HTTP.
+- **Zero-ORM:** Consultas SQL diretas e otimizadas usando `bun:sqlite` com modo WAL ativado.
+- **Stateful Architecture:** Configurado para rodar no **Fly.io** utilizando Volumes persistentes para o banco de dados SQLite.
+- **CORS Enabled:** Configurado para aceitar requisições de qualquer origem (frontend desacoplado).
 
-    ```bash
-    git clone https://github.com/ibonzanino/todo-list-bun.git
-    cd todo-list-bun
-    ```
+---
 
-2.  Instale as dependências:
+## 🛠️ Tecnologias
+
+- **Runtime:** [Bun](https://bun.sh/)
+- **Linguagem:** TypeScript
+- **Database:** SQLite (Native Bun Driver)
+- **Infra:** Docker & Fly.io
+
+---
+
+## 🔌 API Endpoints
+
+A API roda nativamente na porta **3000** e aceita/retorna JSON.
+
+| Método   | Rota         | Descrição               | Corpo (JSON)                               |
+| :------- | :----------- | :---------------------- | :----------------------------------------- |
+| `GET`    | `/tasks`     | Lista todas as tarefas  | N/A                                        |
+| `GET`    | `/tasks/:id` | Busca uma tarefa por ID | N/A                                        |
+| `POST`   | `/tasks`     | Cria uma nova tarefa    | `{ "title": "...", "description": "..." }` |
+| `PUT`    | `/tasks/:id` | Atualiza uma tarefa     | `{ "title": "...", "isCompleted": true }`  |
+| `DELETE` | `/tasks/:id` | Remove uma tarefa       | N/A                                        |
+
+---
+
+## 💾 Estrutura do Banco de Dados
+
+O banco de dados é criado automaticamente na inicialização se não existir.
+
+**Tabela:** `tasks`
+
+- `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+- `title`: TEXT (Obrigatório)
+- `description`: TEXT
+- `isCompleted`: INTEGER (0 ou 1, mapeado para boolean)
+- `createdAt`: TEXT (Timestamp automático)
+
+---
+
+## 🚀 Rodando Localmente
+
+### Pré-requisitos
+
+- [Bun](https://bun.sh/) instalado.
+
+### Passo a Passo
+
+1.  **Instale as dependências:**
 
     ```bash
     bun install
     ```
 
-3.  Execute:
+2.  **Inicie o servidor:**
+    ```bash
+    bun run src/index.ts
+    ```
+    _O servidor iniciará em `http://localhost:3000` e criará o arquivo `todo.sqlite` na raiz._
+
+---
+
+## 🐳 Rodando com Docker
+
+O projeto inclui um `Dockerfile` otimizado.
+
+```bash
+# Construir a imagem
+docker build -t bun-todo-api .
+
+# Rodar o container
+docker run -p 3000:3000 bun-todo-api
+```
+
+---
+
+## ☁️ Deploy no Fly.io (Com Persistência)
+
+Este projeto está configurado para usar **Volumes** do Fly.io, garantindo que o arquivo SQLite não seja perdido ao reiniciar o servidor.
+
+### Configuração (`fly.toml`)
+
+O arquivo `fly.toml` já está configurado para montar o volume `sqlite_data` no diretório `/data`.
+
+1.  **Login e Launch (se for o primeiro deploy):**
 
     ```bash
-    bun run ./src/index.ts
+    fly launch --no-deploy
     ```
 
-4.  Docker:
+2.  **Criar o Volume (Importante):**
+    Você precisa criar um volume com o nome definido no `fly.toml` (`sqlite_data`).
 
     ```bash
-    docker build -t todo-list-bun .
-    docker run -p 3000:3000 todo-list-bun
+    fly volumes create sqlite_data --region gru --size 1
     ```
 
-## 🎯 Funcionalidades
+3.  **Deploy:**
+    ```bash
+    fly deploy
+    ```
 
-- CRUD de tarefas
-- Execução rápida com Bun
-- Docker + SQLite
-- Deploy preparado para Fly.io
+A aplicação usará automaticamente o caminho `/data/todo.sqlite` quando detectar o ambiente de produção.
 
-## 🧭 Arquitetura
+---
 
-- `index.ts`
-- `src/`
-- `todo.sqlite`
-- `Dockerfile`
-- `fly.toml`
+## 📁 Estrutura de Pastas
 
-## 📌 Melhorias futuras
+```
+.
+├── src/
+│   ├── db/
+│   │   └── db.ts            # Conexão SQLite e Schema
+│   ├── services/
+│   │   └── taskService.ts   # Lógica de Negócio (CRUD SQL)
+│   └── index.ts             # Servidor HTTP e Rotas
+├── Dockerfile               # Configuração da Imagem
+├── fly.toml                 # Configuração de Deploy
+├── package.json             # Dependências
+├── tsconfig.json            # Configuração TypeScript
+└── todo.sqlite              # Banco de dados (gerado localmente)
+```
 
-- Autenticação
-- Testes automatizados
-- Deploy de produção
-- Documentação de endpoints
+---
 
-## ✉️ Contato
-
-Igor Bonzanino --- https://github.com/ibonzanino
-
-## 📝 Licença
-
-MIT
+Desenvolvido com 💜 e **Bun**.
