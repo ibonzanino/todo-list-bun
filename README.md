@@ -37,7 +37,7 @@ mostrando habilidade com runtime moderno, containers e boas práticas.
 3.  Execute:
 
     ```bash
-    bun run index.ts
+    bun run ./src/index.ts
     ```
 
 4.  Docker:
