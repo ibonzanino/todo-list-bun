@@ -1,0 +1,33 @@
+# flyctl launch added from .gitignore
+# --- Dependências (Obrigatório) ---
+**\node_modules
+
+# --- Segurança / Segredos (CRÍTICO) ---
+# Nunca suba arquivos .env para o GitHub!
+**\.env
+**\.env.local
+**\.env.development
+**\.env.test
+**\.env.production
+
+# --- Banco de Dados Local (SQLite) ---
+# Ignora o arquivo do banco e os temporários
+**\*.db
+**\*.db-journal
+**\prisma\dev.db
+**\prisma\dev.db-journal
+
+# --- Build e Arquivos Gerados ---
+# Pasta de build do Next.js
+**\.next
+**\out
+**\build
+**\dist
+
+# Onde seu Prisma Client está sendo gerado (conforme seu schema)
+**\generated
+
+# --- Sistema Operacional ---
+**\.DS_Store
+**\Thumbs.db
+fly.toml
